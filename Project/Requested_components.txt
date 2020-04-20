@@ -1,0 +1,24 @@
+Što se tiče opreme i što sam uspio istražiti na internetu poželjno bi bilo imati sljedeće:
+
+	1. Raspberry Pi Model 4 B+/B: https://www.amazon.de/-/en/dp/B07TD42S27/ref=sr_1_3?crid=JC0MPMW9358V&keywords=raspberry+pi+4+2gb&qid=1585770100&sprefix=rasperi+pi+4+2%2Caps%2C173&sr=8-3
+	2. Fingerpring Module (R307): 
+		- https://www.amazon.de/-/en/dp/B07Y82RGMC/ref=sr_1_fkmr0_2?keywords=fingerabdrucksensor+r307+rasberi&qid=1585770013&sr=8-2-fkmr0 
+		or https://www.amazon.co.uk/LLAni-Optical-Fingerprint-Mega2560-Raspberry/dp/B07QXB47CB/ref=sr_1_6?dchild=1&keywords=optical+fingerprint+sensor&qid=1585761856&sr=8-6
+		or https://www.amazon.de/dp/B07SDG2LWM/ref=sspa_dk_detail_0?psc=1&pd_rd_i=B07SDG2LWM&pd_rd_w=MUfeX&pf_rd_p=d3e24f85-c2f2-4959-bef4-3acc5e4e81dc&pd_rd_wg=AQUwr&pf_rd_r=S277BDVSGMVDF2MRH7RM&pd_rd_r=7262c0d5-1409-4e90-847e-4d12fec8a9ac&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExOUhYWk5KREpKRDhXJmVuY3J5cHRlZElkPUEwMzE4OTYxMjg4TE41UkJNNDg5SyZlbmNyeXB0ZWRBZElkPUEwMTI0MzU0R1lSWEdJTllBMlZaJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==
+		
+	3. Serial USB Converter: 				
+		- https://www.amazon.de/dp/B07B628LY8/ref=sspa_dk_detail_5?psc=1&pd_rd_i=B07B628LY8&pd_rd_w=Knw7F&pf_rd_p=d3e24f85-c2f2-4959-bef4-3acc5e4e81dc&pd_rd_wg=Co7Ec&pf_rd_r=RBY6SANYRW098T8PEKH5&pd_rd_r=00669f03-27ac-460f-87c8-e7e1044a915c&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUFGVUdCVEFKRkJISEomZW5jcnlwdGVkSWQ9QTA1MDQ2MzMyUjc4NVhTRDZCUVNIJmVuY3J5cHRlZEFkSWQ9QTA3NTI3MTAzUkRaSzVBMExLUlEwJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==
+
+	4. 2x16 LCD Display:
+		- https://www.amazon.de/dp/B07N8CGM9G/ref=sr_1_1_sspa?keywords=Raspberry+pi+2x16+LCD&qid=1585770778&s=computers&sr=1-1-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExRTdISUFUVFdBVTZOJmVuY3J5cHRlZElkPUExMDAyODMxMThMMENDR09QRkJGNCZlbmNyeXB0ZWRBZElkPUEwMDY3MTU1MUpFN0s5VjlBNUszWCZ3aWRnZXROYW1lPXNwX2F0ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=
+	5. Breadboard + Buttons + LED + Jumper cables: https://www.amazon.de/-/en/dp/B01M7N4WB6/ref=sr_1_5?keywords=Raspberry+pi+Breadboard&qid=1585770833&s=computers&sr=1-5
+	
+
+Za stavku "5" vidio sam da ima uzeti u jednom paku sve korisne utility stvari što bi mi trebale kao botuni, kabeli i slično.
+
+Raspberry PI - ~50 €
+Fingerprint Module - ~20 €
+USB Converter - ~10 €
+LCD Display - ~10 €
+Utility pack - ~15 €
+Sve skupa kad se zaokruži ispadne oko: ~105 - 110 €
