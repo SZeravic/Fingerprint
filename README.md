@@ -1,2 +1,2 @@
 # Fingerpring
-Diplomski
+
