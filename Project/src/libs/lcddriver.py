@@ -9,10 +9,11 @@
 # Make sure that lcddriver is in the same directory though!
 # Credit for this code goes to "natbett" of the Raspberry Pi Forum 18/02/13
 
+from time import sleep
 import i2c_lib
-from time import *
+import threading
 
-# LCD Address 
+# LCD Address
 # Usually you will have to use one of the two provided values below.
 # If you prefer, you can check your LCD address with the command: "sudo i2cdetect -y 1"
 # This is a common LCD address.
@@ -67,6 +68,7 @@ Rw = 0b00000010 # Read/Write bit
 Rs = 0b00000001 # Register select bit
 
 class lcd:
+
    #initializes objects and lcd
    def __init__(self):
       self.lcd_device = i2c_lib.i2c_device(ADDRESS)
@@ -80,6 +82,7 @@ class lcd:
       self.lcd_write(LCD_DISPLAYCONTROL | LCD_DISPLAYON)
       self.lcd_write(LCD_CLEARDISPLAY)
       self.lcd_write(LCD_ENTRYMODESET | LCD_ENTRYLEFT)
+      self.t_stop = threading.Event()
       sleep(0.2)
 
    # clocks EN to latch command
@@ -111,6 +114,45 @@ class lcd:
 
       for char in string:
          self.lcd_write(ord(char), Rs)
+
+   # easier string function
+   def lcd_print(self, *strings):
+      self.lcd_clear()
+      if len(strings) <= 2:
+         for index, string in enumerate(strings, start = 1):
+            self.lcd_display_string(string, index)
+
+   # scrolling string function
+   def lcd_print_long(self, string, index):
+      self.t_stop.clear()
+      thread = threading.Thread(target = self.long_string, args = (string, index,))
+      thread.setDaemon(True)
+      thread.start()
+
+   def lcd_t_stop_set(self):
+      self.t_stop.set()
+
+   # function that handles scrolling text
+   def long_string(self, text = '', line = 1, colum = 16):
+      # print("Thread count: ", threading.activeCount())
+      # print("Thread current: ", threading.currentThread())
+      if(len(text) > colum):
+         self.lcd_display_string(text[:colum],line)
+         sleep(0.5)
+         for i in range(len(text) - colum + 1):
+               if self.t_stop.is_set():
+                  break
+               text_to_print = text[i:i + colum]
+               self.lcd_display_string(text_to_print,line)
+               sleep(0.4)
+         if not self.t_stop.is_set():
+            self.lcd_t_stop_set()
+         sleep(2)
+         # if threading.activeCount() > 1:
+         #    self.lcd_t_stop_set()
+         #    self.lcd_print_long(text, line)
+      else:
+         self.lcd_display_string(text, line)
 
    # clear lcd and set to home
    def lcd_clear(self):
