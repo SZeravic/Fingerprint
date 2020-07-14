@@ -1,13 +1,18 @@
 from time import sleep
 
 class userInput:
-    user_input = 0
-
     def __init__(self):
-        pass
+        self.user_input = 0
+        self.switcher = {
+            26: 1,
+            19: 2,
+            13: 3,
+            6: 4,
+            5: 5,
+        }
 
-    def setUserInput(self, val):
-       self.user_input = val
+    def setUserInput(self, channel):
+       self.user_input = self.switcher.get(channel)
 
     def getUserInput(self):
         return self.user_input

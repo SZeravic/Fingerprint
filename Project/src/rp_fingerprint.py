@@ -23,31 +23,17 @@ GPIO.setup(26, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 usr = userInput()
 
 # User Input - Button callbacks (Activate when the button is pressed)
-def button_1_callback(channel):
-    usr.setUserInput(1)
-
-def button_2_callback(channel):
-    usr.setUserInput(2)
-
-def button_3_callback(channel):
-    usr.setUserInput(3)
-
-def button_4_callback(channel):
-    usr.setUserInput(4)
-
-def button_5_callback(channel):
-    usr.setUserInput(5)
+def button_callback(channel):
+    usr.setUserInput(channel)
 
 # Event listeners that activate the callback functions (Bounce controls accidental button triggers)
-GPIO.add_event_detect(26, GPIO.RISING, callback = button_1_callback, bouncetime=200)
-GPIO.add_event_detect(19, GPIO.RISING, callback = button_2_callback, bouncetime=200)
-GPIO.add_event_detect(13, GPIO.RISING, callback = button_3_callback, bouncetime=200)
-GPIO.add_event_detect(6, GPIO.RISING, callback = button_4_callback, bouncetime=200)
-GPIO.add_event_detect(5, GPIO.RISING, callback = button_5_callback, bouncetime=200)
+GPIO.add_event_detect(26, GPIO.RISING, callback = button_callback, bouncetime=200)
+GPIO.add_event_detect(19, GPIO.RISING, callback = button_callback, bouncetime=200)
+GPIO.add_event_detect(13, GPIO.RISING, callback = button_callback, bouncetime=200)
+GPIO.add_event_detect(6, GPIO.RISING, callback = button_callback, bouncetime=200)
+GPIO.add_event_detect(5, GPIO.RISING, callback = button_callback, bouncetime=200)
 
-###########################################################
 ################# Main Program Functions ##################
-###########################################################
 def enroll_f():
     display.lcd_print("Enrolling print")
     sleep(1)
@@ -150,9 +136,7 @@ def exception_f():
     sleep(2)
     display.lcd_clear()
 
-###########################################################
 ################# Local Helper Functions ##################
-###########################################################
 def fp_init():
     f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
     if (f.verifyPassword() == False):
