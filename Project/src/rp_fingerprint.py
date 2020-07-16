@@ -5,7 +5,6 @@ from libs.lcddriver import lcd
 from libs.userInput import userInput
 from time import sleep
 import RPi.GPIO as GPIO
-import threading
 
 # Load the driver and set it to "display"
 display = lcd()
@@ -19,7 +18,7 @@ GPIO.setup(13, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(19, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(26, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-# User Input -  init(Buttons)
+# User Input - Input control
 usr = userInput()
 
 # User Input - Button callbacks (Activate when the button is pressed)
@@ -33,16 +32,12 @@ GPIO.add_event_detect(13, GPIO.RISING, callback = button_callback, bouncetime=20
 GPIO.add_event_detect(6, GPIO.RISING, callback = button_callback, bouncetime=200)
 GPIO.add_event_detect(5, GPIO.RISING, callback = button_callback, bouncetime=200)
 
-################# Main Program Functions ##################
+######################## Main Program Functions ########################
 def enroll_f():
     display.lcd_print("Enrolling print")
     sleep(1)
 
-    if fp_authenticate_access():
-        print("Authenticated ... proceeding")
-        display.lcd_print("Authenticated", "Continuing...")
-        sleep(2)
-    else: return
+    if not fp_authenticate_root_access(): return
 
     print("Enrolling new fingerpint!")
     display.lcd_print("Enrolling", "New print ...")
@@ -50,93 +45,43 @@ def enroll_f():
     fp_enroll_new()
 
 def delete_f():
-    display.lcd_print("Deleting print")
+    display.lcd_print("Deleting prints")
     sleep(1)
 
-    if fp_authenticate_access():
-        print("Authenticated ... proceeding")
-        display.lcd_print("Authenticated", "Continuing...")
-        sleep(2)
-    else: return
-
     display.lcd_print("Clearing Indexes")
-    display.lcd_print_long("OPT: 1.ALL 2.SINGLE 5.BACK", 2)
+    display.lcd_print_long("OPT: 1.ALL 2.SINGLE 3.PRINT 5.BACK", 2)
     usr.handleUserInput()
-    display.lcd_t_stop_set();
+    display.lcd_t_stop_set()
     sleep(0.1)
 
     if usr.getUserInput() == 1:
-        pass
-        delete_all()
+        fp_delete_all()
     elif usr.getUserInput() == 2:
-        print("Removing single fingerprint")
-        display.lcd_print("Removing single", "fingerprint...")
-        sleep(2)
-        delete_single()
+        fp_delete_single()
     elif usr.getUserInput() == 3:
         fp_print_all()
     elif usr.getUserInput() == 5:
         return
-    sleep(2)
 
-# Tries to search the finger and activates the relay
 def search_f():
     display.lcd_print("Searching print")
     sleep(1)
 
     f = fp_init()
-    f = fp_read(f)
+    fp_read(f)
     if usr.getUserInput() == 5:
         return
     if fp_authenticate(f)[0]:
         GPIO.output(4, GPIO.HIGH)
-
-    sleep(3)
-    GPIO.output(4, GPIO.LOW)
-    sleep(0.1)
+        sleep(3)
+        GPIO.output(4, GPIO.LOW)
+        sleep(0.1)
 
 def index_f():
-    display.lcd_print("Searching index: ")
-    f = fp_init()
-    tableIndex = f.getTemplateIndex(0)
-    sleep(1)
+    fp_print_all()
+    sleep(0.2)
 
-    display.lcd_print("Printing Indexes")
-    sleep(1)
-    indexes = ""
-    for i in range(0, len(tableIndex)):
-        if str(tableIndex[i]) == "True":
-            indexes = indexes + str(i) + ", "
-            print('Template at position #' + str(i) + ' is used: ' + str(tableIndex[i]))
-
-    if indexes != "":
-        print("Indexes found!")
-        display.lcd_print("Indexes found", indexes)
-    else:
-        print("Indexes not found!")
-        display.lcd_print("Indexes empty", "No prints stored")
-    sleep(4)
-
-def exit_f():
-    print("Exiting the program...")
-    display.lcd_print("Exiting program")
-    sleep(1)
-
-def abort_f():
-    print("Clearing the lcd screen text...")
-    display.lcd_print("Farewell...")
-    sleep(1)
-    GPIO.cleanup()
-    display.lcd_clear()
-
-def exception_f():
-    print("Exception dettected, closing program...")
-    display.lcd_print("Exception thrown", "Exiting ...")
-    GPIO.cleanup()
-    sleep(2)
-    display.lcd_clear()
-
-################# Local Helper Functions ##################
+######################## Local Helper Functions ########################
 def fp_init():
     f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
     if (f.verifyPassword() == False):
@@ -147,13 +92,20 @@ def fp_init():
 
 def fp_read(f):
     print('Waiting for finger...')
-    display.lcd_print("Place a finger", "OPT: 5.ABORT")
+    display.lcd_print("Place a finger", "OPT:     5.ABORT")
     while (f.readImage() == False):
         if usr.getUserInput() == 5:
             display.lcd_print("Aborted", "Recovering...")
-            sleep(2)
+            sleep(1)
             return
-    return f
+
+def fp_authenticate_root_access():
+    if fp_authenticate_access():
+        print("Authenticated ... proceeding")
+        display.lcd_print("Authenticated")
+        sleep(1)
+        return True
+    else: return False
 
 def fp_authenticate_access():
     f = fp_init()
@@ -162,10 +114,20 @@ def fp_authenticate_access():
     display.lcd_print("Authenticate", "For root Access:")
     sleep(2)
 
-    f = fp_read(f)
+    fp_read(f)
+    result = fp_authenticate(f)
+    sleep(1)
     if usr.getUserInput() == 5:
         return False
-    return fp_authenticate(f)[0]
+    if result[1] == 0:
+        print("Access Granted!")
+        display.lcd_print("Access Granted!")
+        sleep(1)
+        return result[0]
+    else:
+        print("Access Failed!")
+        display.lcd_print("Access Failed!", "Need Root Access")
+        sleep(2)
 
 def fp_authenticate(f):
     f.convertImage(0x01)
@@ -173,15 +135,13 @@ def fp_authenticate(f):
     position = result[0]
     accuracy = result[1]
 
-    print("(fp_authenticate) Position is: ", position)
-
     if (position == -1):
         print('No match found!')
         display.lcd_print("Auth FAILED", "No match found!")
         sleep(1)
         return False, position, accuracy
     else:
-        score = "Acc score: " + str(accuracy)
+        score = 'Pos [' + str(position) + '] Ac [' + str(accuracy) + ']'
         print('Found template at position #' + str(position))
         print('The accuracy score is: ' + str(accuracy))
         display.lcd_print("Auth SUCCESSFUL", score)
@@ -189,8 +149,7 @@ def fp_authenticate(f):
 
 def fp_enroll_new():
     f = fp_init()
-    f = fp_read(f)
-    sleep(0.1)
+    fp_read(f)
     if usr.getUserInput() == 5: return
     f.convertImage(0x01)
     position = f.searchTemplate()[0]
@@ -207,8 +166,7 @@ def fp_enroll_new():
     display.lcd_print("Remove finger...")
     sleep(1)
 
-    f = fp_read(f)
-    sleep(0.1)
+    fp_read(f)
     if usr.getUserInput() == 5: return
     f.convertImage(0x02)
     if ( f.compareCharacteristics() == 0 ):
@@ -216,10 +174,9 @@ def fp_enroll_new():
         display.lcd_print("Prints do not", "match...")
         sleep(2)
         display.lcd_print("Aborting process", "Recovering...")
-        sleep(2)
+        sleep(1)
         return
 
-    # Creates a template
     f.createTemplate()
     position = f.storeTemplate()
     display.lcd_print("Print enrolled", "SUCCESSFULLY...")
@@ -227,57 +184,55 @@ def fp_enroll_new():
     print('New template position #' + str(position))
     sleep(1)
 
-def delete_all():
-    display.lcd_print("Deleting all...")
+def fp_delete_all():
+    print("Removing single fingerprint")
+    display.lcd_print("Removing ALL", "fingerprints...")
+    sleep(2)
+
+    if not fp_authenticate_root_access(): return
 
     f = fp_init()
-    tableIndex = f.getTemplateIndex(0)
-    sleep(0.2)
-
-    display.lcd_print("Searching Indexes")
+    delete_all(f)
+    print("Prints Deleted ... SUCCESSFULLY")
+    display.lcd_print("Prints Deleted", "SUCCESSFULLY...")
     sleep(1)
-    indexes_list = ""
-    indexes_counter = 0
-    for position in range(0, len(tableIndex)):
-        if str(tableIndex[position]) == "True" and position != 0:
-            if f.deleteTemplate(position):
-                print('Template at position #' + str(position) + ' is used: ' + str(tableIndex[position]))
-                indexes_counter += 1
-                indexes_list += str(position) + ", "
-            else:
-                display.lcd_print("ABORTING ...", "Delete Failed!")
-                sleep(2)
-                return
 
-    if indexes_list != "":
-        print("Indexes found!")
-        indexes_found = "Total found:" + str(indexes_counter)
-        display.lcd_print(indexes_found, indexes_list)
-        sleep(1)
-        print("Index list cleared:")
-        print("Index list was: ", indexes_list)
-        display.lcd_print("All templates", "Cleared ...")
-    else:
-        print("Indexes not found!")
-        display.lcd_print("Indexes empty", "No prints stored")
-    sleep(4)
+def delete_all(f):
+    for page in range(0, 4):
+        tableIndex = f.getTemplateIndex(page)
+        for position in range(0, len(tableIndex)):
+            if str(tableIndex[position]) == "True":
+                if f.deleteTemplate(position):
+                    print('Template at position #' + str(position) + ' Removed!')
+                else:
+                    print('FAILED to delete Template at position #' + str(position))
+                    sleep(1)
+                    return
 
-def delete_single():
+def fp_delete_single():
+    print("Removing single fingerprint")
+    display.lcd_print("Removing single", "fingerprint...")
+    sleep(2)
+
+    if not fp_authenticate_root_access(): return
+
     f = fp_init()
-    f = fp_read(f)
+    fp_read(f)
     result = fp_authenticate(f)
+    position = result[1]
+    authenticated = result[0]
     print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
 
-    if result[1] == 0:
+    if position == 0:
         display.lcd_print("Action ABORTED!")
         sleep(1)
-        display.lcd_print("UNABLE to Remove", "Root acess print")
+        display.lcd_print("UNABLE to Remove", "root acess print")
         sleep(4)
         return
 
-    if result[0]:
-        if f.deleteTemplate(result[1]):
-            deleted = "Template [ " + str(result[1]) + " ]"
+    if authenticated:
+        if f.deleteTemplate(position):
+            deleted = "Template [ " + str(position) + " ]"
             display.lcd_print(deleted, "Has been cleared")
             print(deleted + " has been cleared")
         else:
@@ -285,20 +240,39 @@ def delete_single():
             display.lcd_print("Action FAILED", "Failed to clear!")
     sleep(2)
 
-def fp_print_all(f):
+def fp_print_all():
+    f = fp_init()
     print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-    print("Printing all used templates!")
-    sleep(1)
+    indexes = map_all(f)
+    total = 'Total =  [' + str(len(indexes)) + ']'
+    display.lcd_print("Template list", total)
+    sleep(2)
 
-    # TODO: Do it via Arrays!
-    indexes = ""
-    for page in range (0, 4):
-        print('Page: [' + str(page) + ']')
+    display.lcd_print("Print every pos?", "OPT: 1.YES 5.NO")
+    usr.handleUserInput()
+    sleep(0.1)
+
+    if usr.getUserInput() == 1:
+        total = "|"
+        for index in indexes:
+            total = total + str(index) + '|'
+        display.lcd_print("OPT:      5.BACK")
+        display.lcd_print_long(total, 2)
+        usr.handleUserInput()
+        display.lcd_t_stop_set();
+        sleep(0.1)
+    elif usr.getUserInput() == 5:
+        return
+
+def map_all(f):
+    indexes = []
+    for page in range(0, 4):
         tableIndex = f.getTemplateIndex(page)
         for i in range(0, len(tableIndex)):
             if str(tableIndex[i]) == "True":
-                indexes = indexes + str(i) + ", "
+                indexes.append(str(i))
                 print('Template at position #' + str(i) + ' is used: ' + str(tableIndex[i]))
+    return indexes
 
 def switch_f(arg):
     switch = {
@@ -308,18 +282,16 @@ def switch_f(arg):
         4: index_f,
     }
 
-    print('B4 User input is %s', usr.getUserInput())
     func = switch.get(arg, "Invalid")
     if (func != "Invalid"):
         return func()
     else:
-        print('Aft User input is %s', usr.getUserInput())
         print("Invalid Input ... Try again")
         display.lcd_print("Invalid Input ...", "Please try again")
         sleep(2)
         return
 
-### Driver program
+########################## Main Driver program ##########################
 try:
     def main():
         sleep(0.5)
@@ -332,13 +304,12 @@ try:
             sleep(0.1)
 
             if (usr.getUserInput() == 5):
-                exit_f()
                 break
             switch_f(usr.getUserInput())
 
 except KeyboardInterrupt:
     print("KeyboardInterrupt dettected - Cleaning up!")
-    abort_f()
+    exit_f()
 
 except BaseException as e:
     print("Program Forcefully stopped - Cleaning up!")
@@ -346,6 +317,20 @@ except BaseException as e:
     exception_f()
     exit(1)
 
+def exception_f():
+    print("Exception dettected, closing program...")
+    display.lcd_print("Exception thrown", "Exiting ...")
+    GPIO.cleanup()
+    sleep(2)
+    display.lcd_clear()
+
+def exit_f():
+    print("Clearing the lcd screen text...")
+    display.lcd_print("Farewell...")
+    sleep(1)
+    GPIO.cleanup()
+    display.lcd_clear()
+
 if __name__ == "__main__":
     main()
-    abort_f()
+    exit_f()

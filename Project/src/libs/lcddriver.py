@@ -124,6 +124,7 @@ class lcd:
 
    # scrolling string function
    def lcd_print_long(self, string, index):
+      sleep(0.1)
       self.t_stop.clear()
       thread = threading.Thread(target = self.long_string, args = (string, index,))
       thread.setDaemon(True)
@@ -131,6 +132,7 @@ class lcd:
 
    def lcd_t_stop_set(self):
       self.t_stop.set()
+      sleep(0.1)
 
    # function that handles scrolling text
    def long_string(self, text = '', line = 1, colum = 16):
@@ -145,9 +147,8 @@ class lcd:
                text_to_print = text[i:i + colum]
                self.lcd_display_string(text_to_print,line)
                sleep(0.4)
-         if not self.t_stop.is_set():
-            self.lcd_t_stop_set()
-         sleep(2)
+         self.lcd_t_stop_set()
+         # sleep(1)
          # if threading.activeCount() > 1:
          #    self.lcd_t_stop_set()
          #    self.lcd_print_long(text, line)
