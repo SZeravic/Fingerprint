@@ -131,29 +131,25 @@ class lcd:
       thread.start()
 
    def lcd_t_stop_set(self):
-      self.t_stop.set()
-      sleep(0.1)
+      if not self.t_stop.is_set():
+         self.t_stop.set()
+         sleep(0.1)
 
    # function that handles scrolling text
    def long_string(self, text = '', line = 1, colum = 16):
-      # print("Thread count: ", threading.activeCount())
-      # print("Thread current: ", threading.currentThread())
       if(len(text) > colum):
-         self.lcd_display_string(text[:colum],line)
-         sleep(0.5)
-         for i in range(len(text) - colum + 1):
+         while not self.t_stop.is_set():
+            self.lcd_display_string(text[:colum], line)
+            sleep(0.2)
+            for i in range(len(text) - colum + 1):
                if self.t_stop.is_set():
                   break
                text_to_print = text[i:i + colum]
-               self.lcd_display_string(text_to_print,line)
+               self.lcd_display_string(text_to_print, line)
                sleep(0.4)
-         self.lcd_t_stop_set()
-         # sleep(1)
-         # if threading.activeCount() > 1:
-         #    self.lcd_t_stop_set()
-         #    self.lcd_print_long(text, line)
+            sleep(1)
       else:
-         self.lcd_display_string(text, line)
+		   self.lcd_display_string(text,line)
 
    # clear lcd and set to home
    def lcd_clear(self):

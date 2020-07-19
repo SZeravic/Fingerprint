@@ -37,7 +37,7 @@ def enroll_f():
     display.lcd_print("Enrolling print")
     sleep(1)
 
-    if not fp_authenticate_root_access(): return
+    if not setup_f(): return
 
     print("Enrolling new fingerpint!")
     display.lcd_print("Enrolling", "New print ...")
@@ -61,16 +61,16 @@ def delete_f():
     elif usr.getUserInput() == 3:
         fp_print_all()
     elif usr.getUserInput() == 5:
+        display.lcd_print("Aborted", "Returning...")
+        sleep(1)
         return
 
 def search_f():
-    display.lcd_print("Searching print")
+    display.lcd_print("Searching print!")
     sleep(1)
 
     f = fp_init()
-    fp_read(f)
-    if usr.getUserInput() == 5:
-        return
+    if not fp_read(f): return
     if fp_authenticate(f)[0]:
         GPIO.output(4, GPIO.HIGH)
         sleep(3)
@@ -80,6 +80,24 @@ def search_f():
 def index_f():
     fp_print_all()
     sleep(0.2)
+
+def setup_f():
+    f = fp_init()
+    number = f.getTemplateCount()
+
+    print("Total template count = ", number)
+    if number == 0:
+        display.lcd_print("Root print not", "Dettected...!")
+        sleep(2)
+        display.lcd_print("Create new root?", "OPT:  1.YES 5.NO")
+        usr.handleUserInput()
+        sleep(0.1)
+        if usr.getUserInput() == 5:
+            return False
+        return True
+    else:
+        return fp_authenticate_root_access(f)
+
 
 ######################## Local Helper Functions ########################
 def fp_init():
@@ -97,24 +115,22 @@ def fp_read(f):
         if usr.getUserInput() == 5:
             display.lcd_print("Aborted", "Recovering...")
             sleep(1)
-            return
+            return False
+    return True
 
-def fp_authenticate_root_access():
-    if fp_authenticate_access():
+def fp_authenticate_root_access(f):
+    if fp_authenticate_access(f):
         print("Authenticated ... proceeding")
-        display.lcd_print("Authenticated")
         sleep(1)
         return True
     else: return False
 
-def fp_authenticate_access():
-    f = fp_init()
-
+def fp_authenticate_access(f):
     print("Authenticate for Access!")
     display.lcd_print("Authenticate", "For root Access:")
     sleep(2)
 
-    fp_read(f)
+    if not fp_read(f): return
     result = fp_authenticate(f)
     sleep(1)
     if usr.getUserInput() == 5:
@@ -123,11 +139,12 @@ def fp_authenticate_access():
         print("Access Granted!")
         display.lcd_print("Access Granted!")
         sleep(1)
-        return result[0]
+        return True
     else:
         print("Access Failed!")
         display.lcd_print("Access Failed!", "Need Root Access")
         sleep(2)
+        return False
 
 def fp_authenticate(f):
     f.convertImage(0x01)
@@ -149,8 +166,7 @@ def fp_authenticate(f):
 
 def fp_enroll_new():
     f = fp_init()
-    fp_read(f)
-    if usr.getUserInput() == 5: return
+    if not fp_read(f): return
     f.convertImage(0x01)
     position = f.searchTemplate()[0]
 
@@ -166,8 +182,7 @@ def fp_enroll_new():
     display.lcd_print("Remove finger...")
     sleep(1)
 
-    fp_read(f)
-    if usr.getUserInput() == 5: return
+    if not fp_read(f): return
     f.convertImage(0x02)
     if ( f.compareCharacteristics() == 0 ):
         print("Prints do not match ... Aborting")
@@ -185,14 +200,15 @@ def fp_enroll_new():
     sleep(1)
 
 def fp_delete_all():
-    print("Removing single fingerprint")
-    display.lcd_print("Removing ALL", "fingerprints...")
+    print("Removing all fingerprints")
+    display.lcd_print("ROOT Action...", "Detected...!")
     sleep(2)
 
-    if not fp_authenticate_root_access(): return
-
     f = fp_init()
+    if not fp_authenticate_root_access(f): return
+    display.lcd_print("Removing ALL", "fingerprints...")
     delete_all(f)
+    sleep(2)
     print("Prints Deleted ... SUCCESSFULLY")
     display.lcd_print("Prints Deleted", "SUCCESSFULLY...")
     sleep(1)
@@ -211,13 +227,14 @@ def delete_all(f):
 
 def fp_delete_single():
     print("Removing single fingerprint")
-    display.lcd_print("Removing single", "fingerprint...")
+    display.lcd_print("ROOT Action...", "Detected...!")
     sleep(2)
 
-    if not fp_authenticate_root_access(): return
-
     f = fp_init()
-    fp_read(f)
+    if not fp_authenticate_root_access(f): return
+    display.lcd_print("Removing single", "fingerprint...")
+    sleep(2)
+    if not fp_read(f): return
     result = fp_authenticate(f)
     position = result[1]
     authenticated = result[0]
@@ -226,10 +243,11 @@ def fp_delete_single():
     if position == 0:
         display.lcd_print("Action ABORTED!")
         sleep(1)
-        display.lcd_print("UNABLE to Remove", "root acess print")
+        display.lcd_print("ROOT acess print", "UNABLE to remove")
         sleep(4)
         return
 
+    sleep(1)
     if authenticated:
         if f.deleteTemplate(position):
             deleted = "Template [ " + str(position) + " ]"
@@ -238,6 +256,11 @@ def fp_delete_single():
         else:
             print("Failed to clear", deleted)
             display.lcd_print("Action FAILED", "Failed to clear!")
+    else:
+        print("Failed to Authenticate!")
+        display.lcd_print("Action ABORTED!")
+        sleep(1)
+        display.lcd_print("Authentication", "FAILED!!!")
     sleep(2)
 
 def fp_print_all():
@@ -248,7 +271,7 @@ def fp_print_all():
     display.lcd_print("Template list", total)
     sleep(2)
 
-    display.lcd_print("Print every pos?", "OPT: 1.YES 5.NO")
+    display.lcd_print("Print every pos?", "OPT:  1.YES 5.NO")
     usr.handleUserInput()
     sleep(0.1)
 
@@ -320,6 +343,7 @@ except BaseException as e:
 def exception_f():
     print("Exception dettected, closing program...")
     display.lcd_print("Exception thrown", "Exiting ...")
+    display.lcd_t_stop_set()
     GPIO.cleanup()
     sleep(2)
     display.lcd_clear()
