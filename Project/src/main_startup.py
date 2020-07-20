@@ -45,18 +45,18 @@ def restart_f():
     print("Restarting Raspberry Pi")
     display.lcd_print("Restarting Pi...", "Be right back...")
     sleep(2)
-    GPIO.cleanup()
     display.lcd_clear()
-    sleep(0.5)
+    GPIO.cleanup()
+    sleep(1)
     subprocess.call("sudo reboot", shell=True)
 
 def shutdown_f():
     print("Shutting Down Raspberry Pi")
     display.lcd_print("Shutting Down Pi", "Goodbye... =(")
     sleep(2)
-    GPIO.cleanup()
     display.lcd_clear()
-    sleep(0.5)
+    GPIO.cleanup()
+    sleep(1)
     subprocess.call("sudo shutdown -h now", shell=True)
 
 def switch_f(arg):
@@ -90,7 +90,14 @@ try:
             sleep(0.1)
 
             if usr.getUserInput() == 5:
-                break
+                sleep(1)
+                display.lcd_print("Are you sure?: ", "OPT:  1.NO 5.YES")
+                usr.handleUserInput()
+                if usr.getUserInput() == 5:
+                    display.lcd_print("Goodbye... =(")
+                    sleep(2)
+                    break
+                else: continue
             switch_f(usr.getUserInput())
 
         print("Exiting main_startup.py")
