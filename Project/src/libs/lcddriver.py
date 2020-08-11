@@ -148,8 +148,8 @@ class lcd:
                self.lcd_display_string(text_to_print, line)
                sleep(0.4)
             sleep(1)
-      else:
-		   self.lcd_display_string(text,line)
+      # else:
+		#    self.lcd_display_string(text, line)
 
    # clear lcd and set to home
    def lcd_clear(self):

@@ -37,7 +37,7 @@ def start_f():
     display.lcd_print("Starting up...")
     sleep(2)
     GPIO.cleanup()
-    subprocess.call(['python', '/home/pi/Desktop/Fingerprint/Project/src/rp_fingerprint.py'])
+    subprocess.call(['python2', '/home/pi/Desktop/Fingerprint/Project/src/rp_fingerprint.py'])
     sleep(0.5)
     GPIO_setup()
 
@@ -90,7 +90,7 @@ try:
             sleep(0.1)
 
             if usr.getUserInput() == 5:
-                sleep(1)
+                sleep(0.2)
                 display.lcd_print("Are you sure?: ", "OPT:  1.NO 5.YES")
                 usr.handleUserInput()
                 if usr.getUserInput() == 5:
