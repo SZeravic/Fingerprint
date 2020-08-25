@@ -40,6 +40,7 @@ def removedot(invertThin):
 def get_descriptors(img):
 	clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
 	img = clahe.apply(img)
+	print("Enhancing image")
 	img = image_enhance.image_enhance(img)
 	img = numpy.array(img, dtype=numpy.uint8)
 	# Threshold
@@ -48,10 +49,12 @@ def get_descriptors(img):
 	img[img == 255] = 1
 
 	#Thinning
+	print("Thinning Image")
 	skeleton = skeletonize(img)
 	skeleton = numpy.array(skeleton, dtype=numpy.uint8)
 	skeleton = removedot(skeleton)
 	# Harris corners
+	print("Harris corners process started")
 	harris_corners = cv2.cornerHarris(img, 3, 3, 0.04)
 	harris_normalized = cv2.normalize(harris_corners, 0, 255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32FC1)
 	threshold_harris = 125
@@ -64,45 +67,60 @@ def get_descriptors(img):
 	# Define descriptor
 	orb = cv2.ORB_create()
 	# Compute descriptors
+	print("Orb compute started")
 	_, des = orb.compute(img, keypoints)
+	print("Returning keypoints and descriptors")
 	return (keypoints, des);
 
 
 def main():
-	print("Main")
-	image_name = sys.argv[1]
-	img1 = cv2.imread("database/" + image_name, cv2.IMREAD_GRAYSCALE)
-	kp1, des1 = get_descriptors(img1)
-	print("Img1 imread")
+	print("Started OpenCV Implementation")
 
-	image_name = sys.argv[2]
+	print("-----------------------------------------")
+	image_name = "000.bmp"
+	print("Reading first image (grayscale)")
+	img1 = cv2.imread("database/" + image_name, cv2.IMREAD_GRAYSCALE)
+	print("First image getting descriptors")
+	kp1, des1 = get_descriptors(img1)
+	print("First image read (imread)")
+
+	print("-----------------------------------------")
+	image_name = "001.bmp"
+	print("Reading second image (grayscale)")
 	img2 = cv2.imread("database/" + image_name, cv2.IMREAD_GRAYSCALE)
+	print("Second image getting descriptors")
 	kp2, des2 = get_descriptors(img2)
-	print("Img2 imread")
+	print("Second image read (imread)")
 
 	# Matching between descriptors
+	print("-----------------------------------------")
+	print("Matching between descriptors")
 	bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+	print("BFMatcher sorting")
 	matches = sorted(bf.match(des1, des2), key= lambda match:match.distance)
 	print("BFMatcher sorted")
 	# Plot keypoints
+	print("Ploting keypoints")
 	img4 = cv2.drawKeypoints(img1, kp1, outImage=None)
 	img5 = cv2.drawKeypoints(img2, kp2, outImage=None)
 	f, axarr = plt.subplots(1,2)
-	print("Showing images")
+	print("Keypoints ploted")
+	# print("Showing images")
 	axarr[0].imshow(img4)
 	axarr[1].imshow(img5)
 	plt.show()
-	# Plot matches
+	# # Plot matches
 	img3 = cv2.drawMatches(img1, kp1, img2, kp2, matches, flags=2, outImg=None)
 	plt.imshow(img3)
 	plt.show()
 
 	# Calculate score
+	print("-----------------------------------------")
 	print("Calculating score")
 	score = 0;
 	for match in matches:
 		score += match.distance
-	score_threshold = 33
+	score_threshold = 40
 	if score/len(matches) < score_threshold:
 		print("Fingerprint matches.")
 		print("Score treshold: ", score_threshold)
@@ -111,8 +129,6 @@ def main():
 		print("Fingerprint does not match.")
 		print("Score treshold: ", score_threshold)
 		print("Score: ", int(score/len(matches)))
-
-
 
 if __name__ == "__main__":
 	try:

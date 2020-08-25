@@ -32,12 +32,21 @@ def GPIO_setup():
     GPIO.add_event_detect(6, GPIO.RISING, callback = button_callback, bouncetime=200)
     GPIO.add_event_detect(5, GPIO.RISING, callback = button_callback, bouncetime=200)
 
-def start_f():
+def start_rp_f():
     print("Calling control program (fingerprint.py)")
     display.lcd_print("Starting up...")
     sleep(2)
     GPIO.cleanup()
     subprocess.call(['python2', '/home/pi/Desktop/Fingerprint/Project/src/rp/fingerprint.py'])
+    sleep(0.5)
+    GPIO_setup()
+
+def start_opencv_f():
+    print("Calling control program (openCV.py)")
+    display.lcd_print("Starting up...")
+    sleep(2)
+    GPIO.cleanup()
+    subprocess.call(['python2', '/home/pi/Desktop/Fingerprint/Project/src/rp/openCV.py'])
     sleep(0.5)
     GPIO_setup()
 
@@ -61,9 +70,10 @@ def shutdown_f():
 
 def switch_f(arg):
     switch = {
-        1: start_f,
+        1: start_rp_f,
         2: restart_f,
         3: shutdown_f,
+        4: start_opencv_f,
     }
 
     func = switch.get(arg, "Invalid")
@@ -84,7 +94,7 @@ try:
         while True:
             print("-------------------------------------")
             display.lcd_print("Select Option: ")
-            display.lcd_print_long("OPT: 1.START 2.RESTART 3.SHUTDOWN 5.EXIT", 2)
+            display.lcd_print_long("OPT: 1.START 2.RESTART 3.SHUTDOWN 4.OPENCV 5.EXIT", 2)
             usr.handleUserInput()
             display.lcd_t_stop_set();
             sleep(0.1)
