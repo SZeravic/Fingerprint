@@ -40,7 +40,7 @@ try:
 
     print('Downloading image (this take a while)...')
 
-    imageDestination =  tempfile.gettempdir() + '/fingerprint.bmp'
+    imageDestination =  tempfile.gettempdir() + '/Fingerprints/Left_fingerprint_2_0_0.bmp'
     f.downloadImage(imageDestination)
 
     print('The image was saved to "' + imageDestination + '".')
