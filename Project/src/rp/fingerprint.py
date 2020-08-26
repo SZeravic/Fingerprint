@@ -3,7 +3,7 @@
 from libs.pyfingerprint import PyFingerprint
 from libs.lcddriver import lcd
 from libs.userInput import userInput
-from time import sleep
+from time import sleep, time
 import RPi.GPIO as GPIO
 
 # Load the driver and set it to "display"
@@ -70,12 +70,16 @@ def search_f():
     sleep(1)
 
     f = fp_init()
+    start_time = time()
     if not fp_read(f): return
     if fp_authenticate(f)[0]:
+        print("Sucessful Execution time --- %s seconds ---" % (time() - start_time))
         GPIO.output(4, GPIO.HIGH)
         sleep(3)
         GPIO.output(4, GPIO.LOW)
         sleep(0.1)
+        return
+    print("Faliure Execution time --- %s seconds ---" % (time() - start_time))
 
 def index_f():
     fp_print_all()

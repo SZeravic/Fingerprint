@@ -71,9 +71,9 @@ def shutdown_f():
 def switch_f(arg):
     switch = {
         1: start_rp_f,
-        2: restart_f,
-        3: shutdown_f,
-        4: start_opencv_f,
+        2: start_opencv_f,
+        3: restart_f,
+        4: shutdown_f,        
     }
 
     func = switch.get(arg, "Invalid")
@@ -94,7 +94,7 @@ try:
         while True:
             print("-------------------------------------")
             display.lcd_print("Select Option: ")
-            display.lcd_print_long("OPT: 1.START 2.RESTART 3.SHUTDOWN 4.OPENCV 5.EXIT", 2)
+            display.lcd_print_long("OPT: 1.STANDARD 2.OPENCV 3.RESTART 4.SHUTDOWN 5.EXIT", 2)
             usr.handleUserInput()
             display.lcd_t_stop_set();
             sleep(0.1)

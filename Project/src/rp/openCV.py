@@ -3,7 +3,7 @@
 from libs.pyfingerprint import PyFingerprint
 from libs.lcddriver import lcd
 from libs.userInput import userInput
-from time import sleep
+from time import sleep, time
 import RPi.GPIO as GPIO
 import subprocess
 import os
@@ -52,7 +52,7 @@ def record_f():
 
     print('Saving first print image')
     display.lcd_print("Saving first","Image print")
-    os.chdir("../openCV/database/")
+    os.chdir("/home/pi/Desktop/Fingerprint/Project/src/openCV/database")
     imageDestination =  os.getcwd() + '/000.bmp'
     f.downloadImage(imageDestination)
     print('The image was saved to "' + imageDestination + '".')
@@ -84,10 +84,13 @@ def search_f():
     print("Calling control program (fingerprint.py)")
     display.lcd_print("Starting up...")
     sleep(2)
+    display.lcd_print("Analizing prints")
     GPIO.cleanup()
     os.chdir("/home/pi/Desktop/Fingerprint/Project/src/openCV/")
     print(os.getcwd())
+    start_time = time()
     subprocess.call(['python3', '/home/pi/Desktop/Fingerprint/Project/src/openCV/fingerprint.py'])
+    print("Execution time --- %s seconds ---" % (time() - start_time))
     sleep(0.5)
     GPIO_setup()
     sleep(0.5)
@@ -126,8 +129,10 @@ try:
         sleep(0.5)
         while True:
             print("-------------------------------------")
-            display.lcd_print("Awaiting input: ", "OPT: 1.REC 3.SRC")
+            display.lcd_print("Select Option: ")
+            display.lcd_print_long("OPT: 1.RECORD_IMAGES 3.COMPARE 5.EXIT", 2)
             usr.handleUserInput()
+            display.lcd_t_stop_set();
             sleep(0.1)
 
             if (usr.getUserInput() == 5):
