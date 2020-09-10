@@ -3,9 +3,9 @@
 Fingerprint recognition with SKimage and OpenCV
 
 Requirements:
-- NumPy
-- SKimage
-- OpenCV2
+- NumPy     (numpy)
+- SKimage   (scikit-image)
+- OpenCV2   (opencv-python)
 
 Works by extracting minutiae points using harris corner detection.
 
