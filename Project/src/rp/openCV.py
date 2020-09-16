@@ -77,9 +77,6 @@ def record_f():
     display.lcd_print("Image Saved!")
     sleep(1)
     
-def delete_f():
-    pass
-
 def search_f():
     print("Calling control program (fingerprint.py)")
     display.lcd_print("Starting up...")
@@ -89,14 +86,22 @@ def search_f():
     os.chdir("/home/pi/Desktop/Fingerprint/Project/src/openCV/")
     print(os.getcwd())
     start_time = time()
-    subprocess.call(['python3', '/home/pi/Desktop/Fingerprint/Project/src/openCV/fingerprint.py'])
+    returncode = subprocess.call(['python3', '/home/pi/Desktop/Fingerprint/Project/src/openCV/fingerprint.py'])
     print("Execution time --- %s seconds ---" % (time() - start_time))
+    print("Returncode: ", returncode)
     sleep(0.5)
     GPIO_setup()
     sleep(0.5)
-    GPIO.output(4, GPIO.HIGH)
-    sleep(3)
-    GPIO.output(4, GPIO.LOW)
+    if returncode == 0:
+        display.lcd_print("Access Granted!")
+        sleep(0.1)
+        GPIO.output(4, GPIO.HIGH)
+        sleep(3)
+        GPIO.output(4, GPIO.LOW)
+        sleep(0.1)
+    elif returncode == 1:
+        display.lcd_print("Auth FAILED", "No match found!")
+        sleep(2)
     sleep(0.1)
 
 def fp_init():
@@ -110,7 +115,6 @@ def fp_init():
 def switch_f(arg):
     switch = {
         1: record_f,
-        2: delete_f,
         3: search_f,
     }
 

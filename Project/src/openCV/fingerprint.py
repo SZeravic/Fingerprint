@@ -125,10 +125,12 @@ def main():
 		print("Fingerprint matches.")
 		print("Score treshold: ", score_threshold)
 		print("Score: ", int(score/len(matches)))
+		exit(0)
 	else:
 		print("Fingerprint does not match.")
 		print("Score treshold: ", score_threshold)
 		print("Score: ", int(score/len(matches)))
+		exit(1)
 
 if __name__ == "__main__":
 	try:
